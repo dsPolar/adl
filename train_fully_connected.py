@@ -86,7 +86,14 @@ def accuracy(probs: torch.FloatTensor,
 
 from torch import optim
 
+device = torch.device('cuda')
+
 model = MLP(feature_count, hidden_layer_size, class_count)
+model = model.to(device)
+train_features = features["train"].to(device)
+test_features = features["test"].to(device)
+train_labels = labels["train"].to(device)
+test_labels = labels["test"].to(device)
 
 optimizer = optim.SGD(model.parameters(), lr=0.05)
 
