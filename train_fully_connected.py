@@ -24,8 +24,6 @@ features_df = pd.DataFrame(
   columns=iris['feature_names']
 )
 features_df['label'] = iris['target_names'][iris['target']]
-
-
 preprocessed_features = (iris['data'] - iris['data'].mean(axis=0)) / iris['data'].std(axis=0)
 
 from sklearn.model_selection import train_test_split
@@ -86,9 +84,11 @@ def accuracy(probs: torch.FloatTensor,
 
 from torch import optim
 
-device = torch.device('cuda')
+
 
 model = MLP(feature_count, hidden_layer_size, class_count)
+
+device = torch.device('cuda')
 model = model.to(device)
 train_features = features["train"].to(device)
 test_features = features["test"].to(device)
