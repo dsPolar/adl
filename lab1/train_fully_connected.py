@@ -43,6 +43,9 @@ labels = {
 from torch import nn
 from torch.nn import functional as F
 from typing import Callable
+from torch.utils.tensorboard import SummaryWriter
+
+summary_writer = SummaryWriter('logs', flush_secs=5)
 
 class MLP(nn.Module):
   def __init__(self,
@@ -64,14 +67,14 @@ class MLP(nn.Module):
 feature_count = 4
 hidden_layer_size = 100
 class_count = 3
-model = MLP(feature_count, hidden_layer_size, class_count)
+#model = MLP(feature_count, hidden_layer_size, class_count)
 
-logits = model.forward(features['train'])
+#logits = model.forward(features['train'])
 
-lossCE = nn.CrossEntropyLoss()
-loss = lossCE(logits,labels['train'])
+#lossCE = nn.CrossEntropyLoss()
+#loss = lossCE(logits,labels['train'])
 
-loss.backward()
+#loss.backward()
 
 """Compute Accuracy of probs Tensor compared to targets Tensor"""
 
@@ -100,14 +103,18 @@ optimizer = optim.SGD(model.parameters(), lr=0.05)
 criterion = nn.CrossEntropyLoss()
 
 for epoch in range(0,100):
-  logits = model.forward(features['train'])
-  loss = criterion(logits, labels['train'])
+  logits = model.forward(features['train'].to(device))
+  loss = criterion(logits, labels['train'].to(device))
 
   print("epoch: {} train accuracy: {:2.2f}, loss: {:5.5f}".format(
         epoch,
-        accuracy(logits, labels['train']) * 100,
+        accuracy(logits, labels['train'].to(device)) * 100,
         loss.item()
     ))
+
+  train_accuracy = accuracy(logits, train_labels)*100
+  summary_writer.add_scalar('accuracy/train', train_accuracy, epoch)
+  summary_writer.add_scalar('loss/train', loss.item(), epoch)
 
   loss.backward()
 
@@ -115,6 +122,7 @@ for epoch in range(0,100):
 
   optimizer.zero_grad()
 
-logits = model.forward(features['test'])
-test_accuracy = accuracy(logits, labels['test']) * 100
+summary_writer.close()
+logits = model.forward(features['test'].to(device))
+test_accuracy = accuracy(logits, labels['test'].to(device)) * 100
 print("test accuracy: {:2.2f}".format(test_accuracy))
