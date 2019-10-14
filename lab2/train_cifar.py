@@ -105,10 +105,10 @@ def main(args):
     model = CNN(height=32, width=32, channels=3, class_count=10)
 
     ## TASK 8: Redefine the criterion to be softmax cross entropy
-    criterion = lambda logits, labels: torch.tensor(0)
+    criterion = nn.CrossEntropyLoss()
 
     ## TASK 11: Define the optimizer
-    optimizer = None
+    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
 
     log_dir = get_summary_writer_log_dir(args)
     print(f"Writing logs to {log_dir}")
@@ -146,7 +146,7 @@ class CNN(nn.Module):
         self.pool1 = nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         ## TASK 2-1: Define the second convolutional layer and initialise its parameters
         self.conv2 = nn.Conv2d(
-            in_channels = self.input_shape.channels,
+            in_channels = 32,
             out_channels = 64,
             kernel_size = (5,5),
             padding = (2,2),
@@ -225,20 +225,22 @@ class Trainer:
 
                 ## TASK 1: Compute the forward pass of the model, print the output shape
                 ##         and quit the program
-                output = self.model.forward(batch)
-                print(output.shape)
-                import sys; sys.exit(1)
+                logits = self.model.forward(batch)
+
 
                 ## TASK 7: Rename `output` to `logits`, remove the output shape printing
                 ##         and get rid of the `import sys; sys.exit(1)`
 
                 ## TASK 9: Compute the loss using self.criterion and
                 ##         store it in a variable called `loss`
-                loss = torch.tensor(0)
+                loss = self.criterion(logits, labels)
 
                 ## TASK 10: Compute the backward pass
+                loss.backward()
 
                 ## TASK 12: Step the optimizer and then zero out the gradient buffers.
+                self.optimizer.step()
+                self.optimizer.zero_grad()
 
                 with torch.no_grad():
                     preds = logits.argmax(-1)
