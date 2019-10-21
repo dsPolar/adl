@@ -108,7 +108,7 @@ def main(args):
     criterion = nn.CrossEntropyLoss()
 
     ## TASK 11: Define the optimizer
-    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate)
+    optimizer = optim.SGD(model.parameters(), lr=args.learning_rate, momentum=0.9)
 
     log_dir = get_summary_writer_log_dir(args)
     print(f"Writing logs to {log_dir}")
@@ -143,6 +143,12 @@ class CNN(nn.Module):
             padding=(2, 2),
         )
         self.initialise_layer(self.conv1)
+
+        self.norm1 = nn.BatchNorm2d(
+            num_features=32,
+        )
+        #self.initialise_layer(self.norm1)
+
         self.pool1 = nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         ## TASK 2-1: Define the second convolutional layer and initialise its parameters
         self.conv2 = nn.Conv2d(
@@ -152,27 +158,40 @@ class CNN(nn.Module):
             padding = (2,2),
         )
         self.initialise_layer(self.conv2)
+
+        self.norm2 = nn.BatchNorm2d(
+            num_features=64,
+        )
+        #self.initialise_layer(self.norm2)
+
         ## TASK 3-1: Define the second pooling layer
         self.pool2 = nn.MaxPool2d(kernel_size = (2,2), stride = (2,2))
         ## TASK 5-1: Define the first FC layer and initialise its parameters
         self.fc1 = nn.Linear(4096, 1024)
         self.initialise_layer(self.fc1)
+
+        self.fcnorm1 = nn.BatchNorm1d(
+            num_features=1024,
+        )
+        #self.initialise_layer(self.fcnorm1)
         ## TASK 6-1: Define the last FC layer and initialise its parameters
         self.fc2 = nn.Linear(1024, 10)
         self.initialise_layer(self.fc2)
 
     def forward(self, images: torch.Tensor) -> torch.Tensor:
         x = F.relu(self.conv1(images))
+        x = self.norm1(x)
         x = self.pool1(x)
         ## TASK 2-2: Pass x through the second convolutional layer
         x = F.relu(self.conv2(x))
+        x = self.norm2(x)
         ## TASK 3-2: Pass x through the second pooling layer
         x = self.pool2(x)
         ## TASK 4: Flatten the output of the pooling layer so it is of shape
         ##         (batch_size, 4096)
         x = torch.flatten(x, start_dim=1)
         ## TASK 5-2: Pass x through the first fully connected layer
-        x = F.relu(self.fc1(x))
+        x = F.relu(self.fcnorm1(self.fc1(x)))
         ## TASK 6-2: Pass x through the last fully connected layer
         x = self.fc2(x)
         return x
@@ -353,7 +372,7 @@ def get_summary_writer_log_dir(args: argparse.Namespace) -> str:
         from getting logged to the same TB log directory (which you can't easily
         untangle in TB).
     """
-    tb_log_dir_prefix = f'CNN_bs={args.batch_size}_lr={args.learning_rate}_run_'
+    tb_log_dir_prefix = f'CNN_bs={args.batch_size}_lr={args.learning_rate}_momentum=0.9_run_'
     i = 0
     while i < 1000:
         tb_log_dir = args.log_dir / (tb_log_dir_prefix + str(i))

@@ -170,7 +170,9 @@ class CNN(nn.Module):
         self.fc1 = nn.Linear(4096, 1024)
         self.initialise_layer(self.fc1)
 
-        self.fcnorm1 = nn.BatchNorm1d()
+        self.fcnorm1 = nn.BatchNorm1d(
+            num_features=1024,
+        )
         self.initialise_layer(self.fcnorm1)
         ## TASK 6-1: Define the last FC layer and initialise its parameters
         self.fc2 = nn.Linear(1024, 10)
