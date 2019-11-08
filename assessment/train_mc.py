@@ -126,6 +126,9 @@ def main(args):
 
     model = CNN(height=32, width=32, channels=3, class_count=10, dropout=args.dropout)
 
+    lmcnet = CNN(height=85, width=41, channels=3, class_count=10, dropout=args.dropout)
+    emcnet = CNN(height=85, width=41, channels=3, class_count=10, dropout=args.dropout)
+
     ## TASK 8: Redefine the criterion to be softmax cross entropy
     criterion = nn.CrossEntropyLoss()
 
@@ -163,7 +166,8 @@ class CNN(nn.Module):
         self.conv1 = nn.Conv2d(
             in_channels=self.input_shape.channels,
             out_channels=32,
-            kernel_size=(5, 5),
+            kernel_size=(3, 3),
+            stride=(2, 2),
             padding=(2, 2),
         )
         self.initialise_layer(self.conv1)
@@ -173,12 +177,13 @@ class CNN(nn.Module):
         )
         #self.initialise_layer(self.norm1)
 
-        self.pool1 = nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
+        #self.pool1 = nn.MaxPool2d(kernel_size=(2, 2), stride=(2, 2))
         ## TASK 2-1: Define the second convolutional layer and initialise its parameters
         self.conv2 = nn.Conv2d(
             in_channels = 32,
             out_channels = 64,
-            kernel_size = (5,5),
+            kernel_size = (3,3),
+            stride = (2,2),
             padding = (2,2),
         )
         self.initialise_layer(self.conv2)
@@ -190,34 +195,60 @@ class CNN(nn.Module):
 
         ## TASK 3-1: Define the second pooling layer
         self.pool2 = nn.MaxPool2d(kernel_size = (2,2), stride = (2,2))
+
+        self.conv3 = nn.Conv2d(
+            in_channels = 64,
+            out_channels = 64,
+            kernel_size = (3,3),
+            stride = (2,2),
+            padding = (2,2),
+        )
+
+        self.initialise_layer(self.conv3)
+
+        self.norm3 = nn.BatchNorm2d(
+            num_features = 64,
+        )
+
+        self.conv4 = nn.Conv2d(
+            in_channels = 64,
+            out_channels = 64,
+            kernel_size = (3,3)
+            stride = (2,2),
+            padding = (2,2),
+        )
+        self.initialise_layer(self.conv4)
+
+        self.norm4 = nn.BatchNorm2d(
+            num_features = 64,
+        )
+
+
         ## TASK 5-1: Define the first FC layer and initialise its parameters
-        self.fc1 = nn.Linear(4096, 1024)
+        self.fc1 = nn.Linear(1024, 10)
         self.initialise_layer(self.fc1)
 
-        self.fcnorm1 = nn.BatchNorm1d(
-            num_features=1024,
-        )
-        #self.initialise_layer(self.fcnorm1)
-        ## TASK 6-1: Define the last FC layer and initialise its parameters
-        self.fc2 = nn.Linear(1024, 10)
-        self.initialise_layer(self.fc2)
 
     def forward(self, images: torch.Tensor) -> torch.Tensor:
         x = F.relu(self.conv1(images))
         x = self.norm1(x)
-        x = self.pool1(x)
+
         ## TASK 2-2: Pass x through the second convolutional layer
-        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv2(self.dropout(x)))
         x = self.norm2(x)
         ## TASK 3-2: Pass x through the second pooling layer
         x = self.pool2(x)
+
+        x = F.relu(self.conv3(x))
+        x = self.norm3(x)
+
+        x = F.relu(self.conv4(self.dropout(x)))
+        x = self.norm4(x)
         ## TASK 4: Flatten the output of the pooling layer so it is of shape
         ##         (batch_size, 4096)
         x = torch.flatten(x, start_dim=1)
         ## TASK 5-2: Pass x through the first fully connected layer
-        x = F.relu(self.fcnorm1(self.fc1(self.dropout(x))))
-        ## TASK 6-2: Pass x through the last fully connected layer
-        x = self.fc2(self.dropout(x))
+        x = F.sigmoid(self.fc1(x))
         return x
 
     @staticmethod
