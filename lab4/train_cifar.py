@@ -84,17 +84,19 @@ else:
 
 def main(args):
 
-    transform = transforms.Compose([
-    torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
-    torchvision.transforms.RandomAffine(args.data_aug_rotation),
-    torchvision.transforms.ToTensor(),
+    transform = torchvision.transforms.ToTensor()
+
+    transform_noflip = transforms.Compose([
+        torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
+        torchvision.transforms.RandomAffine(args.data_aug_rotation),
+        torchvision.transforms.ToTensor(),
     ])
 
     transform_flip = transforms.Compose([
-    torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
-    torchvision.transforms.RandomAffine(args.data_aug_rotation),
-    torchvision.transforms.RandomHorizontalFlip(),
-    torchvision.transforms.ToTensor(),
+        torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
+        torchvision.transforms.RandomAffine(args.data_aug_rotation),
+        torchvision.transforms.RandomHorizontalFlip(),
+        torchvision.transforms.ToTensor(),
     ])
     args.dataset_root.mkdir(parents=True, exist_ok=True)
     if(args.data_aug_hflip):
@@ -103,7 +105,7 @@ def main(args):
         )
     else:
         train_dataset = torchvision.datasets.CIFAR10(
-            args.dataset_root, train=True, download=True, transform=transform
+            args.dataset_root, train=True, download=True, transform=transform_noflip
         )
 
     test_dataset = torchvision.datasets.CIFAR10(

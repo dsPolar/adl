@@ -85,26 +85,24 @@ else:
 def main(args):
 
     transform = transforms.Compose([
-    torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
-    torchvision.transforms.RandomAffine(args.data_aug_rotation),
-    torchvision.transforms.ToTensor(),
+        torchvision.transforms.ToTensor(),
     ])
 
-    transform_flip = transforms.Compose([
-    torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
-    torchvision.transforms.RandomAffine(args.data_aug_rotation),
-    torchvision.transforms.RandomHorizontalFlip(),
-    torchvision.transforms.ToTensor(),
-    ])
+    #transform_flip = transforms.Compose([
+    #torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
+    #torchvision.transforms.RandomAffine(args.data_aug_rotation),
+    #torchvision.transforms.RandomHorizontalFlip(),
+    #torchvision.transforms.ToTensor(),
+    #])
     args.dataset_root.mkdir(parents=True, exist_ok=True)
-    if(args.data_aug_hflip):
-        train_dataset = torchvision.datasets.CIFAR10(
-            args.dataset_root, train=True, download=True, transform=transform_flip
-        )
-    else:
-        train_dataset = torchvision.datasets.CIFAR10(
-            args.dataset_root, train=True, download=True, transform=transform
-        )
+    #if(args.data_aug_hflip):
+    #    train_dataset = torchvision.datasets.CIFAR10(
+    #        args.dataset_root, train=True, download=True, transform=transform_flip
+    #    )
+    #else:
+    train_dataset = torchvision.datasets.CIFAR10(
+        args.dataset_root, train=True, download=True, transform=transform
+    )
 
     test_dataset = torchvision.datasets.CIFAR10(
         args.dataset_root, train=False, download=False, transform=transform
@@ -124,9 +122,12 @@ def main(args):
         pin_memory=True,
     )
 
-    model = CNN(height=32, width=32, channels=3, class_count=10, dropout=args.dropout)
+    #model = CNN(height=32, width=32, channels=3, class_count=10, dropout=args.dropout)
 
+    ## NOTE LMC Net
     lmcnet = CNN(height=85, width=41, channels=3, class_count=10, dropout=args.dropout)
+
+    ## NOTE MC Net
     emcnet = CNN(height=85, width=41, channels=3, class_count=10, dropout=args.dropout)
 
     ## TASK 8: Redefine the criterion to be softmax cross entropy
