@@ -84,7 +84,9 @@ else:
 
 def main(args):
 
-    transform = transforms.Compose([
+    transform = torchvision.transforms.ToTensor()
+
+    transform_noflip = transforms.Compose([
         torchvision.transforms.ColorJitter(brightness=args.data_aug_brightness),
         torchvision.transforms.RandomAffine(args.data_aug_rotation),
         torchvision.transforms.ToTensor(),
@@ -103,7 +105,7 @@ def main(args):
         )
     else:
         train_dataset = torchvision.datasets.CIFAR10(
-            args.dataset_root, train=True, download=True, transform=transform
+            args.dataset_root, train=True, download=True, transform=transform_noflip
         )
     ##TODO NOT THIS
     test_dataset = torchvision.datasets.CIFAR10(
